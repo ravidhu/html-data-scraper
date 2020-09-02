@@ -1,0 +1,38 @@
+{
+  "name": "html-data-scraper",
+  "version": "1.0.0",
+  "description": "An efficient wrapper around puppeteer for data scraping web pages. ",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "author": "Ravidhu Dissanayake",
+  "license": "MIT",
+  "keywords": [
+    "htmlparser",
+    "jquery",
+    "selector",
+    "scraper",
+    "parser",
+    "html"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cheeriojs/cheerio.git"
+  },
+  "private": false,
+  "scripts": {
+    "dev": "rm -rf dist/* && nodemon",
+    "build": "./node_modules/.bin/tsc"
+  },
+  "dependencies": {
+    "@types/puppeteer": "^3.0.1",
+    "puppeteer": "^5.2.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.12.0",
+    "@typescript-eslint/parser": "^1.12.0",
+    "eslint": "^7.7.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.0.2",
+    "typescript": "^3.3.3"
+  }
+}
