@@ -4,35 +4,45 @@
   "description": "An efficient wrapper around puppeteer for data scraping web pages. ",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
+  "files": [
+    "dist/"
+  ],
   "author": "Ravidhu Dissanayake",
   "license": "MIT",
+  "repository": "ravidhu/html-data-scraper",
   "keywords": [
     "htmlparser",
     "jquery",
     "selector",
     "scraper",
     "parser",
-    "html"
+    "html",
+    "cheerio",
+    "xray",
+    "x-ray"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/cheeriojs/cheerio.git"
-  },
-  "private": false,
   "scripts": {
-    "dev": "rm -rf dist/* && nodemon",
-    "build": "./node_modules/.bin/tsc"
+    "test": "nyc mocha 'tests/**/*.ts'",
+
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@types/puppeteer": "^3.0.1",
     "puppeteer": "^5.2.1"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/chai": "^4.2.12",
+    "@types/mocha": "^8.0.3",
     "@typescript-eslint/eslint-plugin": "^1.12.0",
     "@typescript-eslint/parser": "^1.12.0",
+    "chai": "^4.2.0",
     "eslint": "^7.7.0",
-    "nodemon": "^2.0.4",
-    "ts-node": "^8.0.2",
+    "mocha": "^8.1.3",
+    "nyc": "^15.1.0",
+    "source-map-support": "^0.5.19",
+    "ts-node": "^9.0.0",
     "typescript": "^3.3.3"
   }
 }

@@ -1,66 +1,90 @@
-# Project Title
+<h1 align="center">Welcome to html-data-scraper 👋</h1>
+<p>
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+</p>
 
-A nice project with a nice description
-
----
-## Requirements
-
-For development, you will only need Node.js and a node global package, Yarn, installed in your environement.
-
-### Node
-- #### Node installation on Windows
-
-  Just go on [official Node.js website](https://nodejs.org/) and download the installer.
-Also, be sure to have `git` available in your PATH, `npm` might need it (You can find git [here](https://git-scm.com/)).
-
-- #### Node installation on Ubuntu
-
-  You can install nodejs and npm easily with apt install, just run the following commands.
-
-      $ sudo apt install nodejs
-      $ sudo apt install npm
-
-- #### Other Operating Systems
-  You can find more information about the installation on the [official Node.js website](https://nodejs.org/) and the [official NPM website](https://npmjs.org/).
-
-If the installation was successful, you should be able to run the following command.
-
-    $ node --version
-    v8.11.3
-
-    $ npm --version
-    6.1.0
-
-If you need to update `npm`, you can make it using `npm`! Cool right? After running the following command, just open again the command line and be happy.
-
-    $ npm install npm -g
-
-###
-### Yarn installation
-  After installing node, this project will need yarn too, so just run the following command.
-
-      $ npm install -g yarn
-
----
+> An efficient wrapper around puppeteer for data scraping web pages. 
 
 ## Install
 
-    $ git clone https://github.com/YOUR_USERNAME/PROJECT_TITLE
-    $ cd PROJECT_TITLE
-    $ yarn install
+```sh
+yarn add html-data-scraper
+```
+Or
+```sh
+npm install html-data-scraper
+```
 
-## Configure app
+## API
 
-Open `a/nice/path/to/a.file` then edit it with your settings. You will need:
+### htmlDataScraper(urls, configurations)
+* `urls` <string[]> An array of urls
+* `configurations` [CustomConfigurations](#customconfigurations)
+* returns: <Promise<PageResults[]>> Promise which resolves an array of [PageResult](#pageresult) objects 
 
-- A setting;
-- Another setting;
-- One more setting;
+This main function will split the urls to distribute the scraping process on each cpu core.
+So if the computer have 4 cores :
+- to scrap 1 url, it will use 1 core
+- to scrap 2 url, it will use 1 core ()
+- to scrap 3 or more than 3 urls, it will use 3 cores
 
-## Running the project
 
-    $ yarn start
+#### CustomConfigurations
 
-## Simple build for production
+This object is use to setup Puppeteer and the scraping process itself. 
+The following object show the default values :
 
-    $ yarn build
+```javascript
+const configurations = {
+    maxSimultaneousBrowser  : cpuCoreCount > 2 ? cpuCoreCount - 1 : 1,
+    additionalWaitSeconds   : 1,
+    puppeteerOptions        : {
+        browser : {
+            args : [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--shm-size=1gb',
+            ],
+        },
+        pageGoTo : { waitUntil: 'networkidle2' },
+    },
+    onPageLoadedForEachUrl  : null,
+    onEvaluateForEachUrl    : null,
+    onProgress              : null,
+}
+```
+#### PageResult
+
+
+## Usage
+
+
+## Development
+
+### Setup
+
+1) Clone this repository
+2) `yarn install`
+
+### Run tests
+
+```sh
+yarn test
+```
+
+
+## Author
+
+👤 **Ravidhu Dissanayake**
+
+* Website: ravidhu.com
+* Github: [@ravidhu](https://github.com/ravidhu)
+* LinkedIn: [@ravidhu](https://linkedin.com/in/ravidhu)
+
+## Show your support
+
+Give a ⭐️ if this project helped you!

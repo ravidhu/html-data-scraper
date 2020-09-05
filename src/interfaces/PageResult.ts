@@ -1,6 +1,6 @@
 import {EvaluateForEachUrlData} from './EvaluateForEachUrl';
 
 export default interface PageResult{
-    rawHtml: string;
+    pageData: any;
     evaluates: EvaluateForEachUrlData | null;
 }

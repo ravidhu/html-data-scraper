@@ -19,3 +19,6 @@ node_modules/
 .npm
 .eslintcache
 .yarn-integrity
+.DS_Store
+.nyc_output
+coverage

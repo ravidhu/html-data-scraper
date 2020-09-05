@@ -1,4 +1,4 @@
-import {NavigationOptions, Page} from 'puppeteer';
+import {EvaluateFn, NavigationOptions, Page} from 'puppeteer';
 
 import CustomConfigurations from '../interfaces/CustomConfigurations';
 import PageResult from '../interfaces/PageResult';
@@ -13,25 +13,29 @@ export default async function pageProcess(
         ? configuration.puppeteerOptions.pageGoTo
         : undefined;
 
-    await page.goto(url, pageOptions);
 
     const result: PageResult = {
-        rawHtml: '',
+        pageData: null,
         evaluates: null,
     };
 
     try {
 
+        await page.setViewport({
+            width: 1920,
+            height: 1080,
+        });
+
+        await page.goto(url, pageOptions);
+        
         if (configuration.additionalWaitSeconds){
             await page.waitFor(configuration.additionalWaitSeconds * 1000);
         }
-
-        if (!configuration.noRawHtml){
-            result.rawHtml = await page.content();
-
-            if (configuration.onRawHtmlForEachUrlLoad){
-                configuration.onRawHtmlForEachUrlLoad(result.rawHtml);
-            }
+        
+        if (configuration.onPageLoadedForEachUrl){
+            result.pageData = await configuration.onPageLoadedForEachUrl(page, url);
+        } else {
+            result.pageData = await page.content(); 
         }
 
         if (configuration.onEvaluateForEachUrl){

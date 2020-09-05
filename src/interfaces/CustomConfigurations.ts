@@ -1,5 +1,5 @@
 import {EvaluateForEachUrlConfigurations} from './EvaluateForEachUrl';
-import {LaunchOptions, ChromeArgOptions, BrowserOptions, NavigationOptions} from 'puppeteer';
+import {LaunchOptions, ChromeArgOptions, BrowserOptions, NavigationOptions, Page} from 'puppeteer';
 
 type OnProgressFunction = (
     resultNumber: number,
@@ -7,19 +7,18 @@ type OnProgressFunction = (
     internalBrowserIndex: number
 ) => void;
 
-type OnRawHtmlForEachUrlLoadFunction = (rawHtml: string) => void;
+type OnRawHtmlForEachUrlLoadFunction = (page: Page, currentUrl: string) => any;
 
 export interface PuppeteerBrowserOptions extends LaunchOptions, ChromeArgOptions, BrowserOptions{}
 
 export default interface CustomConfigurations {
-    simultaneousBrowser?: number;
+    maxSimultaneousBrowser?: number;
     additionalWaitSeconds?: number;
-    noRawHtml?: boolean;
     puppeteerOptions?: {
         browser?: PuppeteerBrowserOptions;
         pageGoTo?: NavigationOptions;
     };
-    onRawHtmlForEachUrlLoad?: OnRawHtmlForEachUrlLoadFunction | null;
+    onPageLoadedForEachUrl?: OnRawHtmlForEachUrlLoadFunction | null;
     onEvaluateForEachUrl?: EvaluateForEachUrlConfigurations | null;
     onProgress?: OnProgressFunction | null;
 }
