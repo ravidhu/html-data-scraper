@@ -15,21 +15,26 @@
     "jquery",
     "selector",
     "scraper",
+    "scraping",
+    "webscraper",
+    "webscraping",
     "parser",
     "html",
     "cheerio",
     "xray",
-    "x-ray"
+    "x-ray",
+    "dom",
+    "javascript"
   ],
   "scripts": {
     "test": "nyc mocha 'tests/**/*.ts'",
-
     "build": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
     "prepare": "npm run build"
   },
   "dependencies": {
-    "@types/puppeteer": "^3.0.1",
-    "puppeteer": "^5.2.1"
+    "@types/puppeteer": "^5.4.2",
+    "controlled-promise-list": "^1.0.1",
+    "puppeteer": "^5.5.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

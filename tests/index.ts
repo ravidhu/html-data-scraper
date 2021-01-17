@@ -1,34 +1,44 @@
 import htmlDataScraper from '../src/index';
 import { expect } from 'chai';
 import 'mocha';
+import defaultConfiguration from '../src/configurations/defaultConfiguration';
 import PageResult from '../src/interfaces/PageResult';
-import {Page} from 'puppeteer';
+import puppeteer, {Browser, Page} from 'puppeteer';
 
 import * as fs from 'fs';
 import initBrowser from '../src/library/initBrowser';
 import pageProcessor from '../src/library/pageProcessor';
 
-describe('Scraping',  () => {
+describe('htmlDataScraper',  () => {
 
-    it('No urls',(done) => {
+    it('No urls',async () => {
 
-        htmlDataScraper([], {
-            maxSimultaneousBrowser : 1,
-        }).catch((error) => {
+        try {
+            await htmlDataScraper([], {
+                maxSimultaneousBrowser : 1,
+            });
+        } catch (error){
             expect(error.message).to.equal( 'urlListIsEmpty');
-            done();
-        });
+        }
 
     });
 
-    it('No max simultaneous browser option',(done) => {
-
-        htmlDataScraper(['https://www.bbc.com'], {
-            maxSimultaneousBrowser : null,
-        }).catch((error) => {
+    it('No max simultaneous browser option',async () => {
+        
+        try {
+            await htmlDataScraper(['https://www.bbc.com'], {
+                maxSimultaneousBrowser : null,
+            });
+        } catch (error){
             expect(error.message).to.equal( 'maxSimultaneousBrowserNotSet');
-            done();
-        });
+        }
+
+    });
+
+    it('No configuration',async () => {
+
+        const results: PageResult[]  = await htmlDataScraper(['https://www.bbc.com'], null);
+        expect(results.length).to.equal( 1);
 
     });
 
@@ -37,7 +47,7 @@ describe('Scraping',  () => {
         await htmlDataScraper([
             'https://www.bbc.com',
         ], {
-            onPageLoadedForEachUrl: async (page: Page) => {
+            onPageLoadedForEachUrl: async (page: Page): Promise<null> => {
 
                 await page.screenshot({
                     path: 'test.png', // Image Dimensions : 1920 x 1080
@@ -71,64 +81,126 @@ describe('Scraping',  () => {
 
     });
 
+    it('Distribute urls to multiple browsers',async () => {
+
+        const progress: Record<string, string[]> = {};
+
+        const urls = [];
+        const urlNumber = 7;
+        const maxSimultaneousBrowser = 3;
+
+        for (let i = 0; i < urlNumber; i++) {
+            urls.push('https://fr.wikipedia.org/wiki/World_Wide_Web');
+        }
+
+        await htmlDataScraper(urls, {
+            maxSimultaneousBrowser,
+            onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
+                const status = resultNumber + '/' + totalNumber;
+                if (progress[internalBrowserIndex]){
+                    progress[internalBrowserIndex].push(status);
+                } else {
+                    progress[internalBrowserIndex] = [status];
+                }
+            },
+        });
+
+        expect(progress).to.deep.equal({
+            '0': [ '1/3', '2/3', '3/3' ],
+            '1': [ '1/3', '2/3', '3/3' ],
+            '2': [ '1/1' ],
+        });
+
+    });
+
 });
 
 describe('initBrowser', () => {
-    it('run solo', (done) => {
+    it('run solo', async () => {
 
         const progress: string[] = [];
 
-        initBrowser([
+        await initBrowser([
             'https://www.bbc.com',
             'https://www.lemonde.fr',
-            'https://www.lefigaro.fr',
+            'https://fr.wikipedia.org',
         ], {
             maxSimultaneousBrowser: 1,
             onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
                 progress.push(resultNumber + '/' + totalNumber);
             },
-        })
-            .then(() => {
-                expect(progress).to.deep.equal([ '1/3', '2/3', '3/3' ]);
-                done();
-            });
-    });
-
-    it('No urls',  (done) => {
-
-        initBrowser([], {}).catch((error) => {
-            expect(error.message).to.equal( 'urlListIsEmpty');
-            done();
         });
 
+        expect(progress).to.deep.equal([ '1/3', '2/3', '3/3' ]);
+
     });
 
-    it('onProgress throw error', (done) => {
+    it('No urls',  async () => {
 
-        initBrowser([
+        try {
+            await initBrowser([], {});
+        } catch (error){
+            expect(error.message).to.equal( 'urlListIsEmpty');
+        }
+
+    });
+
+    it('run with additional wait seconds (3s)', async () => {
+
+        await initBrowser([
             'https://www.bbc.com',
-            'https://www.lemonde.fr',
-            'https://www.lefigaro.fr',
         ], {
-            maxSimultaneousBrowser: 1,
-            onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
-                throw new Error('test');
-            },
-        })
-            .catch((error) => {
-                expect(error.message).to.equal( 'test');
-                done();
+            additionalWaitSeconds: 3,
+        });
+        
+    });
+
+    it('onProgress throw error', async () => {
+
+        try {
+            await initBrowser([
+                'https://www.bbc.com',
+                'https://www.lemonde.fr',
+                'https://www.lefigaro.fr',
+            ], {
+                maxSimultaneousBrowser: 1,
+                onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
+                    throw new Error('test');
+                },
             });
+        } catch (error){
+            expect(error.message).to.equal( 'test');
+        } 
+        
     });
 });
 
 describe('pageProcess', () => {
-    it('Handle errors', async () => {
+
+    it('On Evaluate For an url',  async () => {
+        const browser: Browser = await puppeteer.launch(defaultConfiguration.puppeteerOptions.browser);
+        const page: Page = await browser.newPage();
+
+        const pageResult: PageResult = await pageProcessor('https://www.bbc.com', page, {
+            onEvaluateForEachUrl: {
+                title: (): string => {
+                    const titleElement: HTMLElement | null = document.getElementById('page-title');
+                    return titleElement ? titleElement.innerText : '';
+                },
+            },
+        });
+
+        expect(pageResult.evaluates.title).to.be.an('string');
+
+    });
+
+    it('Handle errors',  async () => {
 
         try {
             await pageProcessor('https://www.bbc.com', null, {});
         } catch (error) {
             expect(error.message).to.match( /Cannot read property/ig);
         }
+
     });
 });

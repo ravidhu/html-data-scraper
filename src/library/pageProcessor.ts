@@ -9,9 +9,12 @@ export default async function pageProcess(
     configuration: CustomConfigurations
 ): Promise<PageResult> {
 
-    const pageOptions: NavigationOptions|undefined = configuration.puppeteerOptions && configuration.puppeteerOptions.pageGoTo
-        ? configuration.puppeteerOptions.pageGoTo
-        : undefined;
+    const pageGoToOptions: NavigationOptions|undefined = (
+        configuration.puppeteerOptions
+        && configuration.puppeteerOptions.pageGoTo
+            ? configuration.puppeteerOptions.pageGoTo
+            : undefined
+    );
 
 
     const result: PageResult = {
@@ -26,10 +29,10 @@ export default async function pageProcess(
             height: 1080,
         });
 
-        await page.goto(url, pageOptions);
+        await page.goto(url, pageGoToOptions);
         
         if (configuration.additionalWaitSeconds){
-            await page.waitFor(configuration.additionalWaitSeconds * 1000);
+            await page.waitForTimeout(configuration.additionalWaitSeconds * 1000);
         }
         
         if (configuration.onPageLoadedForEachUrl){

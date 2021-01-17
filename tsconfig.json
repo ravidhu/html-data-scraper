@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "target": "ES2015",
     "module": "ES2020",
     "strict": true,
     "strictNullChecks": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
     "outDir": "./dist/esm",
     "lib": [
       "dom",

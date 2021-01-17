@@ -1,32 +1,32 @@
-import os from 'os';
+export * from './interfaces/CustomConfigurations';
+export * from './interfaces/PageResult';
+
+import * as os from 'os';
+import defaultConfiguration from './configurations/defaultConfiguration';
 import initBrowser from './library/initBrowser';
 import CustomConfigurations from './interfaces/CustomConfigurations';
 import PageResult from './interfaces/PageResult';
 
-const cpuCoreCount = os.cpus().length;
-
 export default function htmlDataScraper(
     urls: string[],
-    customConfigurations: CustomConfigurations|undefined
+    customConfigurations: CustomConfigurations|null = null
 ): Promise<PageResult[]> {
     
     if (urls.length === 0) return Promise.reject(new Error('urlListIsEmpty'));
+    
+    if (customConfigurations === null) {
+        customConfigurations = {};
+    }
 
     const configuration: CustomConfigurations = {
-        maxSimultaneousBrowser  : cpuCoreCount > 2 ? cpuCoreCount - 1 : 1,
-        additionalWaitSeconds   : 1,
-        puppeteerOptions        : {
-            browser : {
-                args : [
-                    '--no-sandbox',
-                    '--disable-setuid-sandbox',
-                    '--disable-dev-shm-usage',
-                ],
-            },
-            pageGoTo : { waitUntil: 'networkidle2' },
-        },
+        ...defaultConfiguration,
         ...customConfigurations,
     };
+    
+    if (!customConfigurations.hasOwnProperty('maxSimultaneousBrowser')){
+        const cpuCoreCount = os.cpus().length;
+        configuration.maxSimultaneousBrowser = cpuCoreCount > 2 ? cpuCoreCount - 1 : 1;
+    }
 
     if (!configuration.maxSimultaneousBrowser) return Promise.reject(new Error('maxSimultaneousBrowserNotSet'));
 
@@ -40,7 +40,7 @@ export default function htmlDataScraper(
     }
 
     const urlSetsProcess = urlSets.map((urlSet: string[], index) => {
-        return initBrowser(urls, configuration, index);
+        return initBrowser(urlSet, configuration, index);
     });
 
     return Promise.all(urlSetsProcess).then(results => results.reduce((acc, current) => {

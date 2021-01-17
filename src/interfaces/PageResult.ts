@@ -1,6 +1,6 @@
-import {EvaluateForEachUrlData} from './EvaluateForEachUrl';
-
 export default interface PageResult{
     pageData: any;
-    evaluates: EvaluateForEachUrlData | null;
+    evaluates: null | {
+        [k: string]: any;
+    };
 }

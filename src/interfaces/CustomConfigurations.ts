@@ -1,5 +1,4 @@
-import {EvaluateForEachUrlConfigurations} from './EvaluateForEachUrl';
-import {LaunchOptions, ChromeArgOptions, BrowserOptions, NavigationOptions, Page} from 'puppeteer';
+import {LaunchOptions, ChromeArgOptions, BrowserOptions, NavigationOptions, Page, EvaluateFn} from 'puppeteer';
 
 type OnProgressFunction = (
     resultNumber: number,
@@ -19,6 +18,8 @@ export default interface CustomConfigurations {
         pageGoTo?: NavigationOptions;
     };
     onPageLoadedForEachUrl?: OnRawHtmlForEachUrlLoadFunction | null;
-    onEvaluateForEachUrl?: EvaluateForEachUrlConfigurations | null;
+    onEvaluateForEachUrl?: null | {
+        [k: string]: EvaluateFn;
+    };
     onProgress?: OnProgressFunction | null;
 }
