@@ -22,6 +22,11 @@ export default async function initBrowser(
         const browser = await puppeteer.launch(browserOptions);
         const page = await browser.newPage();
 
+        if (configuration.onPageRequest){
+            await page.setRequestInterception(true);
+            page.on('request', configuration.onPageRequest);
+        }
+
         const results: PageResult[] = [];
 
         const promisesReadyToExecute: PromiseFunction[] = urls.map((url: string) => {
