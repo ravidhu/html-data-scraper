@@ -1,6 +1,6 @@
 module.exports = {
     require: [
-        "tests/typescript.js",
+        "tests/typescript.js", // ts-node/register is done here with tsconfig-tests.json
         "source-map-support/register"
     ],
     extension: ['ts'],

@@ -1,13 +1,15 @@
-import htmlDataScraper from '../src/index';
-import { expect } from 'chai';
-import 'mocha';
-import defaultConfiguration from '../src/configurations/defaultConfiguration';
-import PageResult from '../src/interfaces/PageResult';
-import puppeteer, {Browser, Page} from 'puppeteer';
-
 import * as fs from 'fs';
+import { expect } from 'chai';
+import {Browser, Page} from 'puppeteer';
+import * as puppeteer from 'puppeteer';
+
+import 'mocha';
+
+import htmlDataScraper from '../src/index';
 import initBrowser from '../src/library/initBrowser';
 import pageProcessor from '../src/library/pageProcessor';
+import defaultConfiguration from '../src/configurations/defaultConfiguration';
+import PageResult from '../src/interfaces/PageResult';
 
 describe('htmlDataScraper',  () => {
 
@@ -17,19 +19,19 @@ describe('htmlDataScraper',  () => {
             await htmlDataScraper([], {
                 maxSimultaneousBrowser : 1,
             });
-        } catch (error){
+        } catch (error: any){
             expect(error.message).to.equal( 'urlListIsEmpty');
         }
 
     });
 
     it('No max simultaneous browser option',async () => {
-        
+
         try {
             await htmlDataScraper(['https://www.bbc.com'], {
                 maxSimultaneousBrowser : null,
             });
-        } catch (error){
+        } catch (error: any){
             expect(error.message).to.equal( 'maxSimultaneousBrowserNotSet');
         }
 
@@ -139,7 +141,7 @@ describe('initBrowser', () => {
 
         try {
             await initBrowser([], {});
-        } catch (error){
+        } catch (error: any){
             expect(error.message).to.equal( 'urlListIsEmpty');
         }
 
@@ -152,7 +154,7 @@ describe('initBrowser', () => {
         ], {
             additionalWaitSeconds: 3,
         });
-        
+
     });
 
     it('onProgress throw error', async () => {
@@ -168,17 +170,18 @@ describe('initBrowser', () => {
                     throw new Error('test');
                 },
             });
-        } catch (error){
+        } catch (error: any){
             expect(error.message).to.equal( 'test');
-        } 
-        
+        }
+
     });
 });
 
 describe('pageProcess', () => {
 
     it('On Evaluate For an url',  async () => {
-        const browser: Browser = await puppeteer.launch(defaultConfiguration.puppeteerOptions.browser);
+        // @ts-ignore
+        const browser: Browser = await puppeteer.default.launch(defaultConfiguration.puppeteerOptions.browser);
         const page: Page = await browser.newPage();
 
         const pageResult: PageResult = await pageProcessor('https://www.bbc.com', page, {
@@ -198,7 +201,7 @@ describe('pageProcess', () => {
 
         try {
             await pageProcessor('https://www.bbc.com', null, {});
-        } catch (error) {
+        } catch (error: any) {
             expect(error.message).to.match( /Cannot read property/ig);
         }
 

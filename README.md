@@ -102,6 +102,12 @@ if (!customConfigurations.hasOwnProperty('maxSimultaneousBrowser')){
 
 Additionally you can use the following keys:
 
+##### onPageRequest
+`onPageRequest: (request) => void`
+* `request: Request` Represents a page [Request](https://github.com/puppeteer/puppeteer/blob/v5.2.1/docs/api.md#class-httprequest).
+
+Whenever the page sends a request, such as for a network resource, the following function is triggered.
+
 ##### onPageLoadedForEachUrl
 `onPageLoadedForEachUrl: (puppeteerPage, currentUrl) => {}`
 * `puppeteerPage: Page` A reference to the current puppeteer [Page](https://github.com/puppeteer/puppeteer/blob/v5.2.1/docs/api.md#class-page).

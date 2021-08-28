@@ -1,4 +1,4 @@
-import {EvaluateFn, NavigationOptions, Page} from 'puppeteer';
+import {WaitForOptions, Page} from 'puppeteer';
 
 import CustomConfigurations from '../interfaces/CustomConfigurations';
 import PageResult from '../interfaces/PageResult';
@@ -9,7 +9,7 @@ export default async function pageProcess(
     configuration: CustomConfigurations
 ): Promise<PageResult> {
 
-    const pageGoToOptions: NavigationOptions|undefined = (
+    const pageGoToOptions: WaitForOptions|undefined = (
         configuration.puppeteerOptions
         && configuration.puppeteerOptions.pageGoTo
             ? configuration.puppeteerOptions.pageGoTo
@@ -30,15 +30,15 @@ export default async function pageProcess(
         });
 
         await page.goto(url, pageGoToOptions);
-        
+
         if (configuration.additionalWaitSeconds){
             await page.waitForTimeout(configuration.additionalWaitSeconds * 1000);
         }
-        
+
         if (configuration.onPageLoadedForEachUrl){
             result.pageData = await configuration.onPageLoadedForEachUrl(page, url);
         } else {
-            result.pageData = await page.content(); 
+            result.pageData = await page.content();
         }
 
         if (configuration.onEvaluateForEachUrl){
