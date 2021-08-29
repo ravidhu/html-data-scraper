@@ -23,7 +23,7 @@ npm install html-data-scraper
 ### htmlDataScraper(urls, configurations, customBrowser)
 * `urls: string[]` An array of urls
 * `configurations?: CustomConfigurations` An [CustomConfigurations](#customconfigurations) object to configure everything. 
-* `customBrowser?: Browser` An instance of Browser. 
+* `customBrowser?: Browser` An instance of Browser created outside the library, this instance will also be given back in `browserInstance`. 
 * **returns** `Promise<{results:PageResult[], browserInstance: Browser}>` Promise which resolves an array of [PageResult](#pageresult) objects and the Browser instance used during the process. 
 
 This main function will distribute the scraping process regarding all minus one cpu cores number available 
@@ -56,7 +56,7 @@ htmlDataScraper(urls, {
         console.log('Scraping page n°',internalPageIndex, '->' , resultNumber + '/' + totalNumber);
     },
 })
-    .then((results: PageResult[]) => {
+    .then(({results}: {results:PageResult[], browserInstance: Browser}) => {
 
         console.log(results);
         // [
@@ -137,8 +137,8 @@ htmlDataScraper([
         },
     },
 })
-.then((pageResults: PageResult[]) => {
-    console.log(pageResults[0]);
+.then((results: {results:PageResult[], browserInstance: Browser}) => {
+    console.log(results[0]);
     // {
     //     pageData: "....",
     //     evaluates: {
