@@ -1,6 +1,6 @@
 {
   "name": "html-data-scraper",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "An efficient wrapper around puppeteer for data scraping web pages. ",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
