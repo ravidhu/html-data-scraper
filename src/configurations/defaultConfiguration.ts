@@ -1,7 +1,7 @@
 import CustomConfigurations from '../interfaces/CustomConfigurations';
 
 const defaultConfiguration: CustomConfigurations = {
-    maxSimultaneousBrowser  : 1,
+    maxSimultaneousPages  : 1,
     additionalWaitSeconds   : 1,
     puppeteerOptions        : {
         browser : {

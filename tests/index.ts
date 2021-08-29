@@ -1,12 +1,12 @@
+import 'mocha';
 import * as fs from 'fs';
 import { expect } from 'chai';
 import {Browser, Page} from 'puppeteer';
 import * as puppeteer from 'puppeteer';
 
-import 'mocha';
-
 import htmlDataScraper from '../src/index';
-import initBrowser from '../src/library/initBrowser';
+import initBrowser from "../src/library/initBrowser";
+import initPage from '../src/library/initPage';
 import pageProcessor from '../src/library/pageProcessor';
 import defaultConfiguration from '../src/configurations/defaultConfiguration';
 import PageResult from '../src/interfaces/PageResult';
@@ -17,7 +17,7 @@ describe('htmlDataScraper',  () => {
 
         try {
             await htmlDataScraper([], {
-                maxSimultaneousBrowser : 1,
+                maxSimultaneousPages : 1,
             });
         } catch (error: any){
             expect(error.message).to.equal( 'urlListIsEmpty');
@@ -29,17 +29,17 @@ describe('htmlDataScraper',  () => {
 
         try {
             await htmlDataScraper(['https://www.bbc.com'], {
-                maxSimultaneousBrowser : null,
+                maxSimultaneousPages : null,
             });
         } catch (error: any){
-            expect(error.message).to.equal( 'maxSimultaneousBrowserNotSet');
+            expect(error.message).to.equal( 'maxSimultaneousPagesNotSet');
         }
 
     });
 
     it('No configuration',async () => {
 
-        const results: PageResult[]  = await htmlDataScraper(['https://www.bbc.com'], null);
+        const {results}: {results: PageResult[]}  = await htmlDataScraper(['https://www.bbc.com'], null);
         expect(results.length).to.equal( 1);
 
     });
@@ -66,7 +66,7 @@ describe('htmlDataScraper',  () => {
 
     it('Get bbc.com title', async () => {
 
-        const results: PageResult[] = await htmlDataScraper([
+        const {results}: {results: PageResult[]} = await htmlDataScraper([
             'https://www.bbc.com',
         ], {
             onEvaluateForEachUrl: {
@@ -83,26 +83,47 @@ describe('htmlDataScraper',  () => {
 
     });
 
-    it('Distribute urls to multiple browsers',async () => {
+    it('Get bbc.com title with custom browser', async () => {
+
+        const browser = await initBrowser({});
+
+        const {results}: {results: PageResult[]} = await htmlDataScraper([
+            'https://www.bbc.com',
+        ], {
+            onEvaluateForEachUrl: {
+                title: (): string => {
+                    const titleElement: HTMLElement | null = document.getElementById('page-title');
+                    return titleElement ? titleElement.innerText : '';
+                },
+            },
+        }, browser);
+
+        const pageResult: PageResult = results[0];
+
+        expect(pageResult.evaluates.title).to.be.an('string');
+
+    });
+
+    it('Distribute urls to multiple pages',async () => {
 
         const progress: Record<string, string[]> = {};
 
         const urls = [];
         const urlNumber = 7;
-        const maxSimultaneousBrowser = 3;
+        const maxSimultaneousPages = 3;
 
         for (let i = 0; i < urlNumber; i++) {
             urls.push('https://fr.wikipedia.org/wiki/World_Wide_Web');
         }
 
         await htmlDataScraper(urls, {
-            maxSimultaneousBrowser,
-            onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
+            maxSimultaneousPages,
+            onProgress: (resultNumber: number, totalNumber: number, internalPageIndex: number) => {
                 const status = resultNumber + '/' + totalNumber;
-                if (progress[internalBrowserIndex]){
-                    progress[internalBrowserIndex].push(status);
+                if (progress[internalPageIndex]){
+                    progress[internalPageIndex].push(status);
                 } else {
-                    progress[internalBrowserIndex] = [status];
+                    progress[internalPageIndex] = [status];
                 }
             },
         });
@@ -118,29 +139,78 @@ describe('htmlDataScraper',  () => {
 });
 
 describe('initBrowser', () => {
+
+    it('get new instance', async () => {
+
+        const browser = await initBrowser({});
+        expect(browser).to.not.equal(null);
+
+    })
+
+    it('get same instance', async () => {
+
+        const browser1 = await initBrowser({});
+        const browser2 = await initBrowser({});
+        expect(browser1).to.equal(browser2);
+
+    })
+
+    it('get different instance', async () => {
+
+        const browser1 = await initBrowser({
+            puppeteerOptions: {
+                browser : {
+                    args : [
+                        '--no-sandbox',
+                    ],
+                },
+            }
+        });
+        const browser2 = await initBrowser({});
+        expect(browser1).to.not.equal(browser2);
+    })
+
+    it('closing the browser set instance to null', async () => {
+
+        const browser = await initBrowser({});
+        await browser.close();
+        expect(browser.isConnected()).to.equal(false);
+
+    })
+
+})
+
+describe('initPage', () => {
+
     it('run solo', async () => {
 
         const progress: string[] = [];
 
-        await initBrowser([
-            'https://www.bbc.com',
-            'https://www.lemonde.fr',
-            'https://fr.wikipedia.org',
-        ], {
-            maxSimultaneousBrowser: 1,
-            onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
-                progress.push(resultNumber + '/' + totalNumber);
-            },
-        });
+        const browser = await initBrowser({});
 
-        expect(progress).to.deep.equal([ '1/3', '2/3', '3/3' ]);
+        await initPage([
+                'https://www.bbc.com',
+                'https://www.lemonde.fr',
+                'https://fr.wikipedia.org',
+            ],
+            browser,
+            {
+                maxSimultaneousPages: 1,
+                onProgress: (resultNumber: number, totalNumber: number, internalPageIndex: number) => {
+                    progress.push(internalPageIndex + '=>' + resultNumber + '/' + totalNumber);
+                },
+            }
+        );
+
+        expect(progress).to.deep.equal([ '0=>1/3', '0=>2/3', '0=>3/3' ]);
 
     });
 
     it('No urls',  async () => {
 
         try {
-            await initBrowser([], {});
+            const browser = await initBrowser({});
+            await initPage([], browser, {});
         } catch (error: any){
             expect(error.message).to.equal( 'urlListIsEmpty');
         }
@@ -149,35 +219,69 @@ describe('initBrowser', () => {
 
     it('run with additional wait seconds (3s)', async () => {
 
-        await initBrowser([
-            'https://www.bbc.com',
-        ], {
-            additionalWaitSeconds: 3,
-        });
+        const browser = await initBrowser({});
+        await initPage([
+                'https://www.bbc.com',
+            ],
+            browser,
+            {
+                additionalWaitSeconds: 3,
+            }
+        );
 
     });
 
     it('onProgress throw error', async () => {
 
         try {
-            await initBrowser([
-                'https://www.bbc.com',
-                'https://www.lemonde.fr',
-                'https://www.lefigaro.fr',
-            ], {
-                maxSimultaneousBrowser: 1,
-                onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
-                    throw new Error('test');
-                },
-            });
+            const browser = await initBrowser({});
+            await initPage([
+                    'https://www.bbc.com',
+                    'https://www.lemonde.fr',
+                    'https://www.lefigaro.fr',
+                ],
+                browser,
+                {
+                    maxSimultaneousPages: 1,
+                    onProgress: (resultNumber: number, totalNumber: number, internalPageIndex: number) => {
+                        throw new Error('test');
+                    },
+                }
+            );
         } catch (error: any){
             expect(error.message).to.equal( 'test');
         }
 
     });
+
+    it('onPageRequest', async () => {
+        let interceptedImageCount = 0;
+        const browser = await initBrowser({});
+        await initPage([
+                'https://www.bbc.com',
+            ],
+            browser,
+            {
+                onPageRequest: (interceptedRequest) => {
+                    if (
+                        interceptedRequest.url().endsWith('.png') ||
+                        interceptedRequest.url().endsWith('.jpg')
+                    ){
+                        ++interceptedImageCount;
+                        interceptedRequest.abort();
+                    } else {
+                        interceptedRequest.continue();
+                    }
+                },
+            }
+        );
+
+        expect(interceptedImageCount).to.be.above(0)
+
+    });
 });
 
-describe('pageProcess', () => {
+describe('pageProcessor', () => {
 
     it('On Evaluate For an url',  async () => {
         // @ts-ignore

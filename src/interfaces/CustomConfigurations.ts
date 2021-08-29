@@ -17,7 +17,7 @@ type OnRawHtmlForEachUrlLoadFunction = (page: Page, currentUrl: string) => any;
 export interface PuppeteerBrowserOptions extends LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions{}
 
 export default interface CustomConfigurations {
-    maxSimultaneousBrowser?: number;
+    maxSimultaneousPages?: number;
     additionalWaitSeconds?: number;
     puppeteerOptions?: {
         browser?: PuppeteerBrowserOptions;

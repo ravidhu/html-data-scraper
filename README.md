@@ -1,4 +1,4 @@
-<h1 align="center">Welcome to html-data-scraper 👋</h1>
+<h1 style="text-align: center">Welcome to html-data-scraper 👋</h1>
 <p>
   <img alt="Version" src="https://img.shields.io/npm/v/html-data-scraper" />
   <a href="#" target="_blank">
@@ -20,13 +20,14 @@ npm install html-data-scraper
 
 ## API
 
-### htmlDataScraper(urls, configurations)
+### htmlDataScraper(urls, configurations, customBrowser)
 * `urls: string[]` An array of urls
-* `configurations: CustomConfigurations` An [CustomConfigurations](#customconfigurations) object to configure everything. 
-* **returns** `Promise<PageResults[]>` Promise which resolves an array of [PageResult](#pageresult) objects. 
+* `configurations?: CustomConfigurations` An [CustomConfigurations](#customconfigurations) object to configure everything. 
+* `customBrowser?: Browser` An instance of Browser. 
+* **returns** `Promise<{results:PageResult[], browserInstance: Browser}>` Promise which resolves an array of [PageResult](#pageresult) objects and the Browser instance used during the process. 
 
-This main function will distribute the scraping process on all minus one cpu cores available 
-( if the computer have 4 cores, it will distribute on 3 cores ).
+This main function will distribute the scraping process regarding all minus one cpu cores number available 
+( if the computer have 4 cores, it will distribute on 3 cores ). The distribution mean opening a page for each available core.
 
 #### Usage 
 ```typescript
@@ -51,8 +52,8 @@ htmlDataScraper(urls, {
             return innerElement && innerElement.length ? innerElement[0].innerText : '';
         },
     },
-    onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
-        console.log('Scraping brownser n°',internalBrowserIndex, '->' , resultNumber + '/' + totalNumber);
+    onProgress: (resultNumber: number, totalNumber: number, internalPageIndex: number) => {
+        console.log('Scraping page n°',internalPageIndex, '->' , resultNumber + '/' + totalNumber);
     },
 })
     .then((results: PageResult[]) => {
@@ -104,13 +105,13 @@ Additionally you can use the following keys:
 
 ##### onPageRequest
 `onPageRequest: (request) => void`
-* `request: Request` Represents a page [Request](https://github.com/puppeteer/puppeteer/blob/v5.2.1/docs/api.md#class-httprequest).
+* `request: Request` Represents a page [HTTPRequest](https://pptr.dev/#?product=Puppeteer&version=v10.2.0&show=api-class-httprequest).
 
 Whenever the page sends a request, such as for a network resource, the following function is triggered.
 
 ##### onPageLoadedForEachUrl
 `onPageLoadedForEachUrl: (puppeteerPage, currentUrl) => {}`
-* `puppeteerPage: Page` A reference to the current puppeteer [Page](https://github.com/puppeteer/puppeteer/blob/v5.2.1/docs/api.md#class-page).
+* `puppeteerPage: Page` A reference to the current puppeteer [Page](https://pptr.dev/#?product=Puppeteer&version=v10.2.0&show=api-class-page).
 * `currentUrl: string` The current url of the page.
 * **return** `any` You can return whatever you need.
 
@@ -121,7 +122,7 @@ If this function is not set, by default PageResult.pageData is set with `page.co
 `onEvaluateForEachUrl: {}`
 
 This key contain an object that register functions. Those functions are use by 
-[page.evaluate](https://github.com/puppeteer/puppeteer/blob/v5.2.1/docs/api.md#pageevaluatepagefunction-args). 
+[page.evaluate](https://pptr.dev/#?product=Puppeteer&version=v10.2.0&show=api-pageevaluatepagefunction-args). 
 Each function return is set to the corresponding name in [PageResult.evaluates](#evaluates) :
 ```typescript
 import htmlDataScraper, {PageResult} from 'html-data-scraper';    
@@ -148,10 +149,10 @@ htmlDataScraper([
 ```
 
 ##### onProgress
-`onProgress: (resultNumber, totalNumber, internalBrowserIndex) => {}`:
-* `resultNumber: number` The number of processed pages.
-* `totalNumber: number` The total number of page to process.
-* `internalBrowserIndex: number` An index representing the browser that process pages.
+`onProgress: (resultNumber, totalNumber, internalPageIndex) => {}`:
+* `resultNumber: number` The number of processed urls.
+* `totalNumber: number` The total number of urls to process.
+* `internalPageIndex: number` An index representing the page that process urls.
 * **return** `void` No return needed.
 
 This function is run each time a page processing finish.
@@ -164,12 +165,12 @@ const progress: Record<string,string[]> = {};
 htmlDataScraper([
     // ...
 ], {
-    onProgress: (resultNumber: number, totalNumber: number, internalBrowserIndex: number) => {
+    onProgress: (resultNumber: number, totalNumber: number, internalPageIndex: number) => {
         const status = resultNumber + '/' + totalNumber;
-        if (progress[internalBrowserIndex]){
-            progress[internalBrowserIndex].push(status);
+        if (progress[internalPageIndex]){
+            progress[internalPageIndex].push(status);
         } else {
-            progress[internalBrowserIndex] = [status];
+            progress[internalPageIndex] = [status];
         }
     },
 })
